@@ -2,6 +2,7 @@
 //serial still works
 //can set frequency by freq=8; inside loop and disabling the if(millis) thing
 
+//#define DEBUG
 #ifdef DEBUG
   #define DEBUG_PRINT(x)  Serial.print (x)
   #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -21,12 +22,23 @@ volatile byte u = HALF ;
 volatile byte v = HALF ;
 volatile byte w = HALF ;
 char cosine_tab [DEG_360+1] ;  // fails to work if less than 0x202.unsigned int phase = 0 ;
+unsigned int phase = 0 ;
 int freq  = 1 ;
 int amplitude = MAXAMP ; // +/-201 maximum
 unsigned long prev = 0L ;
 
+const byte throttlePin = 7;
+int zeroThrottle = 310;                                         /*throttle reading when pedal is at 0*/
+int fullThrottle = 410;                                         /*throttle reading when pedal is at 100%, originally 720*/
+double slope = 0.622;                                           /*value converts ADC values to PWM values, scaling variable*/
+int throttlePosition;
+
 void setup ()
 {
+  #ifdef DEBUG
+    Serial.begin(115200);
+  #endif
+  
   setup_cosines () ;
   setup_timers () ;
 
@@ -49,18 +61,50 @@ void loop ()
   v = newv ;
   w = neww ;
   //interrupts () ;
+  throttlePosition = getThrottle();
+  freq = getMotorDrive(throttlePosition);
   delayMicroseconds (1000) ;
  
-  if (millis () - prev > fstep_del)
-  {
-    prev += fstep_del ;
-    freq = - freq ;
-    freq = 1 - freq ;
-    if (freq > 100)
-   //   freq = 0 ;
-    freq = 8 ;
-  }
+//  if (millis () - prev > fstep_del)
+//  {
+//    prev += fstep_del ;
+//    freq = - freq ;
+//    freq = 1 - freq ;
+//    if (freq > 100)
+//   //   freq = 0 ;
+//    freq = 8 ;
+//  }
  
+}
+
+int getThrottle (){
+  int throttlePos;
+  throttlePos = analogRead(throttlePin);  
+  DEBUG_PRINT(throttlePos);
+  throttlePos = throttlePos - zeroThrottle;           /*offset throttle position to start at 0, at 0 throttle*/
+  if(throttlePos < 0){                                     /*correct throttle position if it is negative*/
+    throttlePos = 0;
+  }
+  DEBUG_PRINT("\t");
+  DEBUG_PRINT(throttlePos);
+  return throttlePos;
+}
+
+int getMotorDrive(int throttlePos){
+  int motorDrive;
+  motorDrive = (double)throttlePos * slope;                /*multiply throttle position by slope to get PWM value*/
+  DEBUG_PRINT("\t");
+  DEBUG_PRINT(motorDrive);
+  if(motorDrive > 255){                                         /*correct motorDrive if it is over 255*/
+    motorDrive = 255;
+  }
+  if(motorDrive < 0){                                           /*correct motorDrive if it is negative*/
+    motorDrive = 0;
+  }
+  //scale motorDrive between 0 and 100
+  motorDrive = motorDrive * 100;
+  motorDrive = motorDrive / 255;  
+  return motorDrive;
 }
 
 void setup_cosines ()
