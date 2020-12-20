@@ -1,5 +1,6 @@
 // For the UNO!
-
+//serial still works
+//can set frequency by freq=8; inside loop and disabling the if(millis) thing
 #define PERIOD 250   // 250 cycles = 15.625us for each half of waveform, 32kHz
 #define HALF 125     // half the period is the default PWM threshold - gives square wave.
 #define MAXAMP 31
@@ -100,9 +101,9 @@ void loop ()
     prev += fstep_del ;
     freq = - freq ;
     freq = 1 - freq ;
-    if (freq > 20)
-      freq = 0 ;
-   // freq = 8 ;
+    if (freq > 100)
+   //   freq = 0 ;
+    freq = 8 ;
   }
  
 }
