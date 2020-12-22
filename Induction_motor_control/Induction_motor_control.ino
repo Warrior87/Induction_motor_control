@@ -3,7 +3,7 @@
 //PWM frequency needs to be lowered below 20kHz as per the PSS30S92E6-AG datasheet
 
 #define SLOW_CPU
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
   #define DEBUG_PRINT(x)  Serial.print (x)
   #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -33,9 +33,18 @@ int zeroThrottle = 310;                                         /*throttle readi
 int fullThrottle = 410;                                         /*throttle reading when pedal is at 100%, originally 720*/
 double slope = 0.622;                                           /*value converts ADC values to PWM values, scaling variable*/
 int throttlePosition;
+const int numReadings = 15;
+int readings[numReadings];      // the readings from the analog input
+int readIndex = 0;              // the index of the current reading
+int total = 0;                  // the running total
+int average = 0;                // the average
 
 void setup ()
 {
+  // initialize all the readings to 0:
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = 0;
+  }
   #ifdef SLOW_CPU
     noInterrupts();
     CLKPR = _BV(CLKPCE); // 0x80
@@ -93,15 +102,38 @@ void loop ()
 
 int getThrottle (){
   int throttlePos;
+  int avgThrottlePos;
   throttlePos = analogRead(throttlePin);  
   DEBUG_PRINT(throttlePos);
   throttlePos = throttlePos - zeroThrottle;           /*offset throttle position to start at 0, at 0 throttle*/
   if(throttlePos < 0){                                     /*correct throttle position if it is negative*/
     throttlePos = 0;
   }
+  //throttlePos = averageFilter(throttlePos);
   DEBUG_PRINT("\t");
   DEBUG_PRINT(throttlePos);
   return throttlePos;
+}
+
+int averageFilter(int x){
+  // subtract the last reading:
+  total = total - readings[readIndex];
+  // read from the sensor:
+  readings[readIndex] = x;
+  // add the reading to the total:
+  total = total + readings[readIndex];
+  // advance to the next position in the array:
+  readIndex = readIndex + 1;
+
+  // if we're at the end of the array...
+  if (readIndex >= numReadings) {
+    // ...wrap around to the beginning:
+    readIndex = 0;
+  }
+
+  // calculate the average:
+  average = total / numReadings;
+  return average;
 }
 
 int getMotorDrive(int throttlePos){
