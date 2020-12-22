@@ -2,8 +2,8 @@
 //can set frequency by freq=8; inside loop and disabling the if(millis) thing
 //PWM frequency needs to be lowered below 20kHz as per the PSS30S92E6-AG datasheet
 
-//#define SLOW_CPU
-//#define DEBUG
+#define SLOW_CPU
+#define DEBUG
 #ifdef DEBUG
   #define DEBUG_PRINT(x)  Serial.print (x)
   #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -24,7 +24,7 @@ volatile byte v = HALF ;
 volatile byte w = HALF ;
 char cosine_tab [DEG_360+1] ;  // fails to work if less than 0x202.unsigned int phase = 0 ;
 unsigned int phase = 0 ;
-int freq  = 1 ;
+int freq  = 0 ;
 int amplitude = MAXAMP ; // +/-201 maximum
 unsigned long prev = 0L ;
 
@@ -43,7 +43,7 @@ void setup ()
     interrupts();
   #endif
   #ifdef DEBUG
-    Serial.begin(115200);
+    Serial.begin(115200); //57600 if no correction
   #endif
   
   setup_cosines () ;
@@ -56,20 +56,28 @@ void setup ()
 
 void loop ()
 {
-  phase += freq ;
-  int newu = my_cosine (phase) ;
-  int newv = my_cosine (phase - DEG_120) ;
-  int neww = - newu - newv ;
-  newu += HALF ;
-  newv += HALF ;
-  neww += HALF ;
-  //noInterrupts () ;
-  u = newu ;
-  v = newv ;
-  w = neww ;
-  //interrupts () ;
   throttlePosition = getThrottle();
-  freq = getMotorDrive(throttlePosition);
+  freq = getMotorDrive(throttlePosition);  
+  DEBUG_PRINTLN();
+  if(freq > 0){
+    phase += freq ;
+    int newu = my_cosine (phase) ;
+    int newv = my_cosine (phase - DEG_120) ;
+    int neww = - newu - newv ;
+    newu += HALF ;
+    newv += HALF ;
+    neww += HALF ;
+    //noInterrupts () ;
+    u = newu ;
+    v = newv ;
+    w = neww ;
+    //interrupts () ;
+  }
+  else{
+    u = 0;
+    v = 0;
+    w = 0;
+  }
   delayMicroseconds (1000) ;
  
 //  if (millis () - prev > fstep_del)
@@ -81,7 +89,6 @@ void loop ()
 //   //   freq = 0 ;
 //    freq = 8 ;
 //  }
- 
 }
 
 int getThrottle (){
