@@ -2,6 +2,7 @@
 //can set frequency by freq=8; inside loop and disabling the if(millis) thing
 //PWM frequency needs to be lowered below 20kHz as per the PSS30S92E6-AG datasheet
 
+//#define SLOW_CPU
 //#define DEBUG
 #ifdef DEBUG
   #define DEBUG_PRINT(x)  Serial.print (x)
@@ -35,6 +36,12 @@ int throttlePosition;
 
 void setup ()
 {
+  #ifdef SLOW_CPU
+    noInterrupts();
+    CLKPR = _BV(CLKPCE); // 0x80
+    CLKPR = _BV(CLKPS0); // 0x01
+    interrupts();
+  #endif
   #ifdef DEBUG
     Serial.begin(115200);
   #endif
