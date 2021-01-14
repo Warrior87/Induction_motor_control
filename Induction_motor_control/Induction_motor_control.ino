@@ -67,7 +67,7 @@ void loop ()
 {
   //throttlePosition = getThrottle();
   //freq = getMotorDrive(throttlePosition);  
-  freq = 30;
+  freq = 8;
   DEBUG_PRINTLN();
   if(freq > 0){
     phase += freq ;
