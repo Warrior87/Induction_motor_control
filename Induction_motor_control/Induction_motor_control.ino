@@ -65,8 +65,9 @@ void setup ()
 
 void loop ()
 {
-  throttlePosition = getThrottle();
-  freq = getMotorDrive(throttlePosition);  
+  //throttlePosition = getThrottle();
+  //freq = getMotorDrive(throttlePosition);  
+  freq = 30;
   DEBUG_PRINTLN();
   if(freq > 0){
     phase += freq ;
