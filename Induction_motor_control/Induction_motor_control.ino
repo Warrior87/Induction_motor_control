@@ -3,7 +3,7 @@
 //PWM frequency needs to be lowered below 20kHz as per the PSS30S92E6-AG datasheet
 
 #define SLOW_CPU
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
   #define DEBUG_PRINT(x)  Serial.print (x)
   #define DEBUG_PRINTLN(x)  Serial.println (x)
