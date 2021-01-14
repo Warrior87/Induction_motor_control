@@ -3,7 +3,7 @@
 //PWM frequency needs to be lowered below 20kHz as per the PSS30S92E6-AG datasheet
 
 #define SLOW_CPU
-//#define DEBUG
+#define DEBUG
 #ifdef DEBUG
   #define DEBUG_PRINT(x)  Serial.print (x)
   #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -67,6 +67,10 @@ void loop ()
 {
   throttlePosition = getThrottle();
   freq = getMotorDrive(throttlePosition);  
+  freq = freq >> 3;
+  freq = freq << 3;
+  DEBUG_PRINT("\t");
+  DEBUG_PRINT(freq);
   DEBUG_PRINTLN();
   if(freq > 0){
     phase += freq ;
