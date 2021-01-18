@@ -1,6 +1,7 @@
 // For the UNO!
 //can set frequency by freq=8; inside loop and disabling the if(millis) thing
 //PWM frequency needs to be lowered below 20kHz as per the PSS30S92E6-AG datasheet
+//Max PWM frequency =~179Hz
 
 #define SLOW_CPU
 //#define DEBUG
@@ -14,7 +15,7 @@
 
 #define PERIOD 250   // 250 cycles = 15.625us for each half of waveform, 32kHz
 #define HALF 125     // half the period is the default PWM threshold - gives square wave.
-#define MAXAMP 31
+#define MAXAMP 31     //31
 #define DEG_360  0x200
 #define DEG_120  0x0AB
 #define fstep_del 500
@@ -22,7 +23,7 @@
 volatile byte u = HALF ;
 volatile byte v = HALF ;
 volatile byte w = HALF ;
-char cosine_tab [DEG_360+1] ;  // fails to work if less than 0x202.unsigned int phase = 0 ;
+char cosine_tab [DEG_360+1] ;  // fails to work if less than 0x202.
 unsigned int phase = 0 ;
 int freq  = 0 ;
 int amplitude = MAXAMP ; // +/-201 maximum
@@ -139,17 +140,21 @@ int averageFilter(int x){
 int getMotorDrive(int throttlePos){
   int motorDrive;
   motorDrive = (double)throttlePos * slope;                /*multiply throttle position by slope to get PWM value*/
-  DEBUG_PRINT("\t");
-  DEBUG_PRINT(motorDrive);
   if(motorDrive > 255){                                         /*correct motorDrive if it is over 255*/
     motorDrive = 255;
   }
   if(motorDrive < 0){                                           /*correct motorDrive if it is negative*/
     motorDrive = 0;
   }
-  //scale motorDrive between 0 and 100
-  motorDrive = motorDrive * 100;
-  motorDrive = motorDrive / 255;  
+//  //scale motorDrive between 0 and 100
+//  motorDrive = motorDrive * 100;
+//  motorDrive = motorDrive / 255;  
+
+  if(motorDrive > 180){
+    motorDrive = 180;
+  }
+  DEBUG_PRINT("\t");
+  DEBUG_PRINT(motorDrive);
   return motorDrive;
 }
 
